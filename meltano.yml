@@ -1,0 +1,42 @@
+# meltano.yml (in tap-oracle/ root, for development)
+version: 1
+plugins:
+  extractors:
+    - name: tap-oracle
+      namespace: tap_oracle
+      pip_url: -e .
+      executable: tap-oracle
+      capabilities:
+        - state
+        - catalog
+        - discover
+        - about
+      settings:
+        - name: host
+        - name: port
+          value: 1521
+        - name: user
+        - name: password
+          kind: password
+        - name: service_name
+        - name: sid
+        - name: filter_schemas
+        - name: filter_tables
+          kind: array
+        - name: cursor_array_size
+          value: 1000
+        - name: thick_mode
+          kind: boolean
+          value: false
+
+environments:
+  - name: dev
+    config:
+      plugins:
+        extractors:
+          - name: tap-oracle
+            config:
+              host: localhost
+              port: 1521
+              service_name: ORCL
+              filter_schemas: HR
