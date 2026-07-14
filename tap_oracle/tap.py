@@ -44,7 +44,24 @@ class TapOracle(SQLTap):
                     th.ArrayType(th.StringType),
                     description='Tables to include, format: ["SCHEMA-TABLE", ...]. '
                                 'Matches the pipelinewise-tap-oracle convention.'),
-
+        th.Property(
+            "stream_options",
+            th.ObjectType(
+                additional_properties=th.ObjectType(
+                    th.Property(
+                        "custom_where_clauses",
+                        th.ArrayType(th.StringType),
+                        default=[],
+                        description=(
+                            "If an array of custom WHERE clauses is provided, the tap "
+                            "will only process the records that match the WHERE "
+                            "clauses. "
+                            "The WHERE clauses are combined using the AND operator."
+                        ),
+                    ),
+                ),
+            ),
+        ),
         # --- Replication ---
         th.Property("start_date",   th.DateTimeType,
                     description="Earliest date for incremental replication"),

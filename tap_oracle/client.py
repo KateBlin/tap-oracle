@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+import sys
 from urllib.parse import quote_plus
 from typing import Any
 
@@ -8,6 +9,13 @@ import sqlalchemy as sa
 from singer_sdk import typing as th
 from singer_sdk.sql import SQLConnector, SQLStream, SQLTap
 from singer_sdk.sql.connector import SQLToJSONSchema
+from singer_sdk.helpers.types import Context
+from sqlalchemy import Select, Table
+
+if sys.version_info >= (3, 12):
+    from typing import override
+else:
+    from typing_extensions import override
 
 try:
     import oracledb
@@ -145,3 +153,18 @@ class OracleStream(SQLStream):
     """Stream class for Oracle tables."""
 
     connector_class = OracleConnector
+
+    @override
+    def apply_query_filters(
+            self,
+            query: Select,
+            table: Table,
+            *,
+            context: Context | None = None,
+    ) -> Select:
+        """Apply query filters to the query."""
+        query = super().apply_query_filters(query, table, context=context)
+        stream_options = self.config.get("stream_options", {}).get(self.name, {})
+        if clauses := stream_options.get("custom_where_clauses"):
+            query = query.where(*(sa.text(clause.strip()) for clause in clauses))
+        return query
